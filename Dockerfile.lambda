@@ -1,0 +1,19 @@
+FROM rust:1.80 AS BUILDER
+
+WORKDIR /usr/src/app
+
+RUN apt-get update && apt-get install -y zip
+
+RUN rustup target add aarch64-unknown-linux-musl
+
+COPY . .
+
+RUN cargo build --release --features lambda-deploy --target aarch64-unknown-linux-musl
+
+RUN cp /usr/src/app/target/aarch64-unknown-linux-musl/release/zero-pii-fincance-calculations /usr/src/app/bootstrap
+
+RUN zip -j /usr/src/app/deployment.zip /usr/src/app/bootstrap
+
+FROM scratch
+
+COPY --from=BUILDER /usr/src/app/deployment.zip /
