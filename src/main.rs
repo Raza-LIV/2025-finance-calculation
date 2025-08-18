@@ -1,31 +1,15 @@
-use axum::{
-    http::StatusCode,
-    response::Json,
-    routing::get,
-    Router,
-};
-use serde::Serialize;
-use std::net::SocketAddr;
+mod handlers;
+mod routes;
 
-#[derive(Serialize)]
-struct HealthResponse {
-    status: String,
-}
-
-async fn health_check() -> (StatusCode, Json<HealthResponse>) {
-    let response = HealthResponse {
-        status: "ok".to_string(),
-    };
-    (StatusCode::OK, Json(response))
-}
-
-fn app() -> Router {
-    Router::new().route("/health", get(health_check))
+fn app() -> axum::Router {
+    routes::create_router()
 }
 
 #[cfg(not(feature = "lambda-deploy"))]
 #[tokio::main]
 async fn main() {
+    use std::net::SocketAddr;
+    
     tracing_subscriber::fmt().json().init();
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
